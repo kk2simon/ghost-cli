@@ -1,0 +1,40 @@
+# Binaries for programs and plugins
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+
+# Dependency directories (remove the comment below to include it)
+# vendor/
+
+# Go workspace file
+go.work.sum
+
+# IDE directories and files
+.idea/
+.vscode/
+
+# Compiled code
+/bin/
+/pkg/
+
+# Go build cache
+.go/
+go.test/
+
+# VS Code
+.vscode/
+
+# gopls
+.gopls/
+
+
+
+ghost_app
+prompt*.tpl
+repo.md
+.ghost/
