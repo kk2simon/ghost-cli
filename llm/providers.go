@@ -3,12 +3,11 @@ package llm
 import (
 	"context"
 	"fmt"
+	"log/slog"
+
 	"github.com/kk2simon/ghost-cli/tools"
 
 	"github.com/mark3labs/mcp-go/mcp"
-	"github.com/openai/openai-go"
-	"github.com/openai/openai-go/option"
-	"google.golang.org/genai"
 )
 
 type LLMConfig struct {
@@ -19,29 +18,13 @@ type LLMConfig struct {
 	Model   string
 }
 
-func BuildLLMProvider(ctx context.Context, cfg LLMConfig) (LLMProvider, error) {
+func BuildLLMProvider(ctx context.Context, cfg LLMConfig, logger *slog.Logger) (LLMProvider, error) {
 	switch cfg.APIType {
 	case "gemini":
-		// TODO move to NewGeminiLLMProvider
-		geminiClient, err := genai.NewClient(ctx, &genai.ClientConfig{
-			APIKey:  cfg.APIKey,
-			Backend: genai.BackendGeminiAPI,
-		})
-		if err != nil {
-			return nil, fmt.Errorf("failed to create gemini client: %v", err)
-		}
-		return &GeminiLLMProvider{client: geminiClient}, nil
+		return NewGeminiLLMProvider(ctx, cfg, logger)
 
 	case "openaichat":
-		// TODO move to NewOpenaiChatLLMProvider
-		opts := []option.RequestOption{
-			option.WithAPIKey(cfg.APIKey), // falls back to ENV if empty
-		}
-		if cfg.Host != "" {
-			opts = append(opts, option.WithBaseURL(cfg.Host))
-		}
-		openaiClient := openai.NewClient(opts...)
-		return &OpenaiChatLLMProvider{client: &openaiClient}, nil
+		return NewOpenaiChatLLMProvider(cfg, logger)
 
 	default:
 		return nil, fmt.Errorf("unsupported LLM type: %s", cfg.APIType)

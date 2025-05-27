@@ -6,9 +6,12 @@ toolchain go1.23.9
 
 require (
 	github.com/BurntSushi/toml v1.5.0
+	github.com/fatih/color v1.18.0
+	github.com/lmittmann/tint v1.1.0
 	github.com/mark3labs/mcp-go v0.27.0
 	github.com/openai/openai-go v1.0.0
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
+	golang.org/x/term v0.32.0
 	google.golang.org/genai v1.5.0
 )
 
@@ -25,6 +28,8 @@ require (
 	github.com/googleapis/enterprise-certificate-proxy v0.3.6 // indirect
 	github.com/googleapis/gax-go/v2 v2.14.1 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
+	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/spf13/cast v1.7.1 // indirect
 	github.com/tidwall/gjson v1.14.4 // indirect
 	github.com/tidwall/match v1.1.1 // indirect

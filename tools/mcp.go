@@ -4,9 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
+	"strings"
 	"sync"
 	"time"
 
+	"github.com/fatih/color"
+	"github.com/kk2simon/ghost-cli/base"
 	"github.com/mark3labs/mcp-go/client"
 	"github.com/mark3labs/mcp-go/mcp"
 )
@@ -26,11 +30,12 @@ type Runtime struct {
 	CloseFunc func()
 }
 
-func InitializeMCP(ctx context.Context, cfgs []McpConfig) (*Runtime, error) {
+func InitializeMCP(ctx context.Context, cfgs []McpConfig, logger *slog.Logger) (*Runtime, error) {
 	mcpClients := make([]*client.Client, 0, len(cfgs))
 	toolToClient := make(map[string]*client.Client)
 	allTools := make([]mcp.Tool, 0)
 
+	spinner := base.StartProgressSpinner("Initialize MCPs", len(cfgs))
 	var mu sync.Mutex
 	var wg sync.WaitGroup
 	errChan := make(chan error, len(cfgs))
@@ -39,6 +44,8 @@ func InitializeMCP(ctx context.Context, cfgs []McpConfig) (*Runtime, error) {
 	for _, mcpCfg := range cfgs {
 		go func(cfg McpConfig) {
 			defer wg.Done()
+			defer spinner.Incr()
+
 			c, err := client.NewStdioMCPClient(cfg.Command, cfg.Env, cfg.Args...)
 			if err != nil {
 				errChan <- fmt.Errorf("Failed to create MCP client: %v", err)
@@ -97,8 +104,8 @@ func InitializeMCP(ctx context.Context, cfgs []McpConfig) (*Runtime, error) {
 			return nil, err
 		}
 
+		color.Magenta("Confirm tool call:")
 		fmt.Printf(`=======================
-Confirm tool call:
 Name: %s
 Arguments:
 %v
@@ -129,7 +136,29 @@ Press Enter to continue, or type anything else to refuse:`, name, string(b))
 			return callResult, err
 		}
 		tc, _ := callResult.Content[0].(mcp.TextContent)
-		fmt.Printf("Tool result: %v\n", tc.Text)
+		logger.Debug("Tool result", "result", tc.Text)
+
+		{ // print tool call result, (TODO move to base pkg PrintInfoSummary)
+			text := tc.Text
+			textLen := len(text)
+			words := strings.Fields(text) // Split into words
+			wordCount := len(words)
+			formattedText := ""
+			const wordsThreshold = 20 // Threshold to decide if truncation is needed
+			const wordsToShow = 10    // Number of words to show at the beginning and end
+
+			if wordCount <= wordsThreshold {
+				formattedText = text // Keep original text if short
+			} else {
+				// Take the first wordsToShow words
+				firstWords := strings.Join(words[:wordsToShow], " ")
+				// Take the last wordsToShow words
+				lastWords := strings.Join(words[wordCount-wordsToShow:], " ")
+				formattedText = firstWords + " ... " + lastWords
+			}
+			fmt.Printf("Tool result (char len: %d, word count: %d): %s\n", textLen, wordCount, formattedText)
+		}
+
 		return callResult, nil
 	}
 

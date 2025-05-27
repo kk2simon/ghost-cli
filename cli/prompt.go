@@ -109,10 +109,10 @@ func DirectoryTree(w io.Writer, repoRoot, current string, ign *ignore.GitIgnore,
 	return nil
 }
 
-// ReadLineStdin prompts the user and reads a line of input from stdin.
+// PromptUser prompts the user with "> " and reads a line from stdin.
 // It returns the trimmed input string and any error encountered.
-func ReadLineStdin() (string, error) {
-	fmt.Print("> ")
+func PromptUser() (string, error) {
+	fmt.Fprint(os.Stderr, "> ")
 	reader := bufio.NewReader(os.Stdin)
 	userInput, err := reader.ReadString('\n')
 	if err != nil {

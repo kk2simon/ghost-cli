@@ -12,8 +12,10 @@ import (
 )
 
 type Config struct {
-	LLMs []llm.LLMConfig
+	LogLevel string
+	LogPath  string
 
+	LLMs []llm.LLMConfig
 	Mcps []tools.McpConfig
 }
 
@@ -40,7 +42,7 @@ func ParseConfig(flagCfgPath string) (Config, error) {
 	for _, path := range tryPaths {
 		f, err = os.Open(path)
 		if err == nil {
-			fmt.Println("Using config file:", path)
+			fmt.Println("Reading config file:", path)
 			break
 		}
 	}

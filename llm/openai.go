@@ -1,20 +1,23 @@
 package llm
 
 import (
-	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
+
+	"github.com/fatih/color"
+	"github.com/kk2simon/ghost-cli/cli"
 	"github.com/kk2simon/ghost-cli/tools"
-	"os"
-	"strings"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/openai/openai-go"
+	"github.com/openai/openai-go/option"
 )
 
 type OpenaiChatLLMProvider struct {
 	client *openai.Client
+	logger *slog.Logger
 }
 
 func (o *OpenaiChatLLMProvider) APIType() string {
@@ -51,19 +54,13 @@ func (o *OpenaiChatLLMProvider) Chat(
 
 		// No tool calls → conversation finished
 		if len(msg.ToolCalls) == 0 {
-			fmt.Println("Final response:", msg.Content)
+			color.Cyan("LLM:" + msg.Content)
 
 			// Ask user for new prompt
-			fmt.Print("> ")
-			reader := bufio.NewReader(os.Stdin)
-			userInput, err := reader.ReadString('\n')
+			userInput, err := cli.PromptUser()
 			if err != nil {
-				// Handle error, maybe return or continue
-				fmt.Printf("Error reading user input: %v\n", err)
 				return "", fmt.Errorf("error reading user input: %w", err)
 			}
-
-			userInput = strings.TrimSpace(userInput)
 			// If user input is empty or exit command, break the loop
 			if userInput == "" || userInput == "exit" { // Define an exit command
 				return "", nil // Return nil error to indicate successful chat end
@@ -103,7 +100,16 @@ func (o *OpenaiChatLLMProvider) Chat(
 	return "", nil
 }
 
-// Convert MCP tool schemas to the structures expected by the new SDK.
+func NewOpenaiChatLLMProvider(cfg LLMConfig, logger *slog.Logger) (*OpenaiChatLLMProvider, error) {
+	opts := []option.RequestOption{
+		option.WithAPIKey(cfg.APIKey), // falls back to ENV if empty
+	}
+	if cfg.Host != "" {
+		opts = append(opts, option.WithBaseURL(cfg.Host))
+	}
+	openaiClient := openai.NewClient(opts...)
+	return &OpenaiChatLLMProvider{client: &openaiClient, logger: logger}, nil
+}
 func buildOpenAITools(tools []mcp.Tool) ([]openai.ChatCompletionToolParam, error) {
 	out := make([]openai.ChatCompletionToolParam, 0, len(tools))
 	for _, t := range tools {

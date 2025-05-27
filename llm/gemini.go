@@ -1,12 +1,13 @@
 package llm
 
 import (
-	"bufio"
 	"context"
 	"fmt"
-	"os"
+	"log/slog"
 	"strings"
 
+	"github.com/fatih/color"
+	"github.com/kk2simon/ghost-cli/cli"
 	"github.com/kk2simon/ghost-cli/tools"
 
 	"github.com/mark3labs/mcp-go/mcp"
@@ -15,6 +16,7 @@ import (
 
 type GeminiLLMProvider struct {
 	client *genai.Client
+	logger *slog.Logger
 }
 
 func (g *GeminiLLMProvider) APIType() string {
@@ -51,20 +53,13 @@ func (g *GeminiLLMProvider) Chat(ctx context.Context,
 				respText = genContentResp.Candidates[0].Content.Parts[0].Text
 			}
 
-			// Print the response text
-			fmt.Println(respText)
+			color.Cyan("LLM:" + respText)
 
 			// Prompt user for input
-			fmt.Print("> ")
-			reader := bufio.NewReader(os.Stdin)
-			userInput, err := reader.ReadString('\n')
+			userInput, err := cli.PromptUser()
 			if err != nil {
-				// Handle error, maybe return or continue
-				fmt.Printf("Error reading user input: %v\n", err)
 				return "", fmt.Errorf("error reading user input: %w", err)
 			}
-
-			userInput = strings.TrimSpace(userInput)
 
 			// If user input is empty or exit command, break the loop
 			if userInput == "" || userInput == "exit" { // Define an exit command
@@ -116,7 +111,16 @@ func (g *GeminiLLMProvider) Chat(ctx context.Context,
 	return "", nil
 }
 
-// copied from https://github.com/kylecarbs/aisdk-go/blob/main/google.go#L20
+func NewGeminiLLMProvider(ctx context.Context, cfg LLMConfig, logger *slog.Logger) (*GeminiLLMProvider, error) {
+	geminiClient, err := genai.NewClient(ctx, &genai.ClientConfig{
+		APIKey:  cfg.APIKey,
+		Backend: genai.BackendGeminiAPI,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create gemini client: %v", err)
+	}
+	return &GeminiLLMProvider{client: geminiClient, logger: logger}, nil
+}
 func toolsToGoogle(tools []mcp.Tool) ([]*genai.Tool, error) {
 	functionDeclarations := []*genai.FunctionDeclaration{}
 
