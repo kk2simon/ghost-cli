@@ -89,7 +89,6 @@ Now, support `{{.cwd}}`, `{{.dirTree}}` placeholder.
 - Prompt templates.
 
 ## Roadmap
-- [ ] Better console print.
 - [ ] Support for SSE/streamed output.
 - [ ] `--var "foo=bar"` support, this allows customize template context vars.
 - [ ] System/developer prompt, planning to parse from prompt markdown file.

@@ -52,7 +52,7 @@ func main() {
 
 	resp, err := llmProvider.Chat(ctx, llm.Prompt{User: prompt}, modelToUse,
 		toolsRuntime.Tools, toolsRuntime.Caller)
-	exitIfErr(err, "Error during gemini chat")
+	exitIfErr(err, "Error during chat")
 	logger.Info("Chat done", "Result", resp)
 
 }

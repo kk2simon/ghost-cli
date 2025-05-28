@@ -50,6 +50,11 @@ func (o *OpenaiChatLLMProvider) Chat(
 			return "", fmt.Errorf("no choices")
 		}
 
+		o.logger.Debug("Openai chat complete", "ChoicesLen", len(completion.Choices))
+		for _, c := range completion.Choices {
+			o.logger.Debug("Choice", "FinishReason", c.FinishReason, "Index", c.Index)
+		}
+
 		msg := completion.Choices[0].Message
 
 		// No tool calls → conversation finished

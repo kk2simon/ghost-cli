@@ -16,6 +16,10 @@ type LLMConfig struct {
 	APIKey  string
 	Host    string
 	Model   string
+
+	// OpenaiResponse struct {
+	// 	DeleteConversation bool // whether delete conversation after chat
+	// }
 }
 
 func BuildLLMProvider(ctx context.Context, cfg LLMConfig, logger *slog.Logger) (LLMProvider, error) {
@@ -25,6 +29,9 @@ func BuildLLMProvider(ctx context.Context, cfg LLMConfig, logger *slog.Logger) (
 
 	case "openaichat":
 		return NewOpenaiChatLLMProvider(cfg, logger)
+
+	case "openairesponse":
+		return NewOpenaiResponseLLMProvider(cfg, logger)
 
 	default:
 		return nil, fmt.Errorf("unsupported LLM type: %s", cfg.APIType)
